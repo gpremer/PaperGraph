@@ -1,7 +1,6 @@
 var horizontal = new Point(1,0);
 var vertical = new Point(0,-1);
 
-
 function Graph(width, height) {
   xOffset = 40;
   yOffset = 40;
@@ -21,6 +20,8 @@ function Graph(width, height) {
   yMinorTicks = 1;
   numIndices = 1;
   barWidth = 0.8; // 80%
+  values = [];
+  labels = [];
   
   this.setXRange = function(xMin_, xMax_) {
     xMin = xMin_
@@ -37,10 +38,28 @@ function Graph(width, height) {
     yMinorTicks = minor
   }
   
+  this.setData = function(values_) {
+    values = values_.slice(0)
+    numIndices = values.length
+    labels_ = new Array();
+    for (i = 0; i < labels.length; ++i) {
+      labels[i] = i;
+    }
+  }
+  
+  this.setLabels = function(labels_) {
+    for (i = 0; i < labels_.length; ++i) {
+      if ( labels_[i] != undefined ) {
+        labels[i] = labels_[i];
+      }
+    }
+  }
+  
   this.draw = function() {
     drawAxes()
     drawGridLines();
     drawYTicks();
+    drawXTicks();
     drawValues();
   }
 
@@ -100,16 +119,27 @@ function Graph(width, height) {
       majorTick.place(origin - new Point(3,0) + vertical * dataValueToY(v));
       var label = new PointText(new Point(origin - new Point(15,0) + vertical * dataValueToY(v)));
       label.fillColor = "white";
-      label.translate(-7*Math.floor(Math.log(v)/Math.log(10)+0.01), 4); // TODO: PointText.bounds does not work in released version. Use it when it is released. 
+      label.translate(-7 * v.toString().length, 4); // TODO: PointText.bounds does not work in released version. Use it when it is released. 
       label.content = v;
+    }
+  }
+  
+  drawXTicks = function() {
+    var majorTick = new Path(0,0);
+    majorTick.lineBy(0, 6);
+    majorTick.style = { strokeColor: 'white', strokeWidth: 2, strokeCap: 'butt' };
+    majorTick = new Symbol(majorTick);
+    for (i = 0; i < values.length ; ++i) {
+      majorTick.place(origin + new Point(dataIndexToX(i), 4));      
+      var label = new PointText(new Point(origin + new Point(0, 18) + horizontal * dataIndexToX(i)));
+      label.fillColor = "white";
+      label.translate(-4 * labels[i].toString().length, 0); // TODO: PointText.bounds does not work in released version. Use it when it is released. 
+      label.content = labels[i];
     }
   }
 
   drawValues = function() {
-    values = [1000, 800, 200, 500, 1100, 900, 543, 800, 800, 1000, 1200, 1100, 700];
-    numIndices = values.length
-    
-    for (i= 0; i < numIndices ; ++i) {
+    for (i = 0; i < numIndices ; ++i) {
       var barWidthInX = barWidth * xAxisLength / numIndices;
       var start = origin + new Point(dataIndexToX(i) - barWidthInX / 2, 0);
       var box = new Path.Rectangle(new Rectangle(start, new Size(barWidthInX, -dataValueToY(values[i]))));
@@ -122,4 +152,6 @@ var g= new Graph(1200, 600);
 g.setXRange(0, 23);
 g.setYRange(0, 1200);
 g.setYTicks(300, 30);
+g.setData([1000, 800, 200, 500, 1100, 900, 543, 800, 800, 1000, 1200, 1100, 700, 750, 920]);
+g.setLabels([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 g.draw();
